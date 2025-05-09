@@ -1,52 +1,72 @@
-import React, { useState } from 'react';
-import { Plus, ArrowLeft } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
-import { booksApi, bookCategories } from '../lib/db';
-import toast from 'react-hot-toast';
+import React, { useState } from "react";
+import { Plus, ArrowLeft } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { supabase } from "../lib/supabase"; // Importar el cliente de Supabase
+import toast from "react-hot-toast";
+import { bookCategories } from "../lib/db";
 
 export default function AddBook() {
   const navigate = useNavigate();
-  const [newBook, setNewBook] = useState({ 
-    title: '', 
-    author: '', 
-    isbn: '', 
-    description: '', 
-    imageUrls: [''],
-    category: ''
+  const [newBook, setNewBook] = useState({
+    titulo: "",
+    autor: "",
+    categoria: "",
+    descripcion: "",
+    imagenUrls: [""],
   });
-  const [imageUrlInputs, setImageUrlInputs] = useState<string[]>(['']);
+  const [imageUrlInputs, setImageUrlInputs] = useState<string[]>([""]);
+  const [loading, setLoading] = useState(false); // Estado para mostrar el indicador de carga
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setLoading(true); // Mostrar el indicador de carga
+
     try {
-      const filteredImageUrls = imageUrlInputs.filter(url => url.trim() !== '');
-      await booksApi.create({
-        ...newBook,
-        imageUrls: filteredImageUrls
-      });
-      toast.success('Libro agregado exitosamente');
-      navigate('/books');
-    } catch (error) {
-      toast.error('Error al agregar el libro');
+      const filteredImageUrls = imageUrlInputs.filter(
+        (url) => url.trim() !== ""
+      );
+
+      // Enviar los datos a Supabase
+      const { error } = await supabase.from("libros").insert([
+        {
+          titulo: newBook.titulo,
+          autor: newBook.autor,
+          categoria: newBook.categoria,
+          descripcion: newBook.descripcion,
+          imagen_url: filteredImageUrls, // Asegúrate de que el nombre del campo coincida con tu tabla
+        },
+      ]);
+
+      if (error) {
+        throw error; // Lanzar el error para manejarlo en el catch
+      }
+
+      toast.success("Libro agregado exitosamente");
+      navigate("/books"); // Redirigir a la lista de libros
+    } catch (error: any) {
+      console.error(error);
+      toast.error("Error al agregar el libro");
+    } finally {
+      setLoading(false); // Ocultar el indicador de carga
     }
   }
 
   const addImageUrlInput = () => {
-    setImageUrlInputs([...imageUrlInputs, '']);
+    setImageUrlInputs([...imageUrlInputs, ""]);
   };
 
   const updateImageUrl = (index: number, value: string) => {
     const newUrls = [...imageUrlInputs];
     newUrls[index] = value;
     setImageUrlInputs(newUrls);
-    setNewBook({ ...newBook, imageUrls: newUrls });
+    setNewBook({ ...newBook, imagenUrls: newUrls });
   };
 
   const removeImageUrl = (index: number) => {
     if (imageUrlInputs.length > 1) {
       const newUrls = imageUrlInputs.filter((_, i) => i !== index);
       setImageUrlInputs(newUrls);
-      setNewBook({ ...newBook, imageUrls: newUrls });
+      setNewBook({ ...newBook, imagenUrls: newUrls });
     }
   };
 
@@ -61,7 +81,9 @@ export default function AddBook() {
             <ArrowLeft className="h-4 w-4 mr-1" />
             Volver a libros
           </Link>
-          <h2 className="mt-2 text-2xl font-bold text-gray-900">Agregar nuevo libro</h2>
+          <h2 className="mt-2 text-2xl font-bold text-gray-900">
+            Agregar nuevo libro
+          </h2>
         </div>
       </div>
 
@@ -70,72 +92,81 @@ export default function AddBook() {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
               <div>
-                <label htmlFor="title" className="block text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="titulo"
+                  className="block text-sm font-medium text-gray-700"
+                >
                   Título
                 </label>
                 <input
                   type="text"
-                  id="title"
-                  value={newBook.title}
-                  onChange={(e) => setNewBook({ ...newBook, title: e.target.value })}
+                  id="titulo"
+                  value={newBook.titulo}
+                  onChange={(e) =>
+                    setNewBook({ ...newBook, titulo: e.target.value })
+                  }
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                   required
                 />
               </div>
 
               <div>
-                <label htmlFor="author" className="block text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="autor"
+                  className="block text-sm font-medium text-gray-700"
+                >
                   Autor
                 </label>
                 <input
                   type="text"
-                  id="author"
-                  value={newBook.author}
-                  onChange={(e) => setNewBook({ ...newBook, author: e.target.value })}
+                  id="autor"
+                  value={newBook.autor}
+                  onChange={(e) =>
+                    setNewBook({ ...newBook, autor: e.target.value })
+                  }
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                   required
                 />
               </div>
 
               <div>
-                <label htmlFor="isbn" className="block text-sm font-medium text-gray-700">
-                  ISBN
-                </label>
-                <input
-                  type="text"
-                  id="isbn"
-                  value={newBook.isbn}
-                  onChange={(e) => setNewBook({ ...newBook, isbn: e.target.value })}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="category" className="block text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="categoria"
+                  className="block text-sm font-medium text-gray-700"
+                >
                   Categoría
                 </label>
                 <select
-                  id="category"
-                  value={newBook.category}
-                  onChange={(e) => setNewBook({ ...newBook, category: e.target.value })}
+                  id="categoria"
+                  value={newBook.categoria}
+                  onChange={(e) =>
+                    setNewBook({ ...newBook, categoria: e.target.value })
+                  }
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                   required
                 >
                   <option value="">Seleccionar categoría</option>
-                  {bookCategories.map(category => (
-                    <option key={category} value={category}>{category}</option>
+                  {bookCategories.map((category) => (
+                    <option key={category} value={category}>
+                      {category}
+                    </option>
                   ))}
                 </select>
               </div>
 
               <div className="col-span-2">
-                <label htmlFor="description" className="block text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="descripcion"
+                  className="block text-sm font-medium text-gray-700"
+                >
                   Descripción
                 </label>
                 <textarea
-                  id="description"
-                  value={newBook.description}
-                  onChange={(e) => setNewBook({ ...newBook, description: e.target.value })}
+                  id="descripcion"
+                  value={newBook.descripcion}
+                  onChange={(e) =>
+                    setNewBook({ ...newBook, descripcion: e.target.value })
+                  }
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                   rows={3}
                 />
@@ -178,10 +209,19 @@ export default function AddBook() {
             <div className="flex justify-end">
               <button
                 type="submit"
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                disabled={loading} // Deshabilitar el botón mientras se carga
+                className={`inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white ${
+                  loading ? "bg-gray-400" : "bg-indigo-600 hover:bg-indigo-700"
+                }`}
               >
-                <Plus className="h-4 w-4 mr-2" />
-                Agregar libro
+                {loading ? (
+                  "Cargando..."
+                ) : (
+                  <>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Agregar libro
+                  </>
+                )}
               </button>
             </div>
           </form>

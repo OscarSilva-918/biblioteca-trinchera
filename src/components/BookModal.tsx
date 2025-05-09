@@ -88,10 +88,10 @@ export default function BookModal({ book, onClose }: BookModalProps) {
                 </p>
               )}
 
-              {book.description && (
+              {book.descripcion && (
                 <div className="mt-4">
                   <h5 className="text-sm font-medium text-gray-900">Descripción</h5>
-                  <p className="mt-1 text-sm text-gray-600">{book.description}</p>
+                  <p className="mt-1 text-sm text-gray-600">{book.descripcion}</p>
                 </div>
               )}
             </div>
