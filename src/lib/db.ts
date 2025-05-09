@@ -53,7 +53,8 @@ export const bookCategories = [
   'Devocional',
   'Historia de la Iglesia',
   'Ministerio',
-  'Evangelismo'
+  'Evangelismo',
+  'Biblia'
 ];
 
 let users: User[] = [

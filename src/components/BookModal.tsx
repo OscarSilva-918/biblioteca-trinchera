@@ -14,12 +14,12 @@ interface BookModalProps {
 
 export default function BookModal({ book, onClose }: BookModalProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-
+  console.log(book.imagen_url)
   return (
     <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full overflow-hidden">
         <div className="flex justify-between items-center px-6 py-4 border-b">
-          <h3 className="text-lg font-medium text-gray-900">Detalles del libro</h3>
+          <h3 className="text-lg font-medium text-gray-900">Detalles del libro </h3>
           <button
             onClick={onClose}
             className="text-gray-400 hover:text-gray-500"
@@ -40,7 +40,7 @@ export default function BookModal({ book, onClose }: BookModalProps) {
                   pagination={{ clickable: true }}
                   className="h-64"
                 >
-                  {book.imageUrls.map((url, index) => (
+                  {book.imagen_url.map((url, index) => (
                     <SwiperSlide key={index}>
                       <img
                         src={url}
@@ -50,7 +50,7 @@ export default function BookModal({ book, onClose }: BookModalProps) {
                     </SwiperSlide>
                   ))}
                 </Swiper>
-                {book.imageUrls.length > 1 && (
+                {book.imagen_url.length > 1 && (
                   <>
                     <button className="swiper-button-prev absolute left-2 top-1/2 transform -translate-y-1/2 bg-white rounded-full p-1 shadow-md">
                       <ChevronLeft className="h-5 w-5 text-gray-600" />
@@ -63,8 +63,8 @@ export default function BookModal({ book, onClose }: BookModalProps) {
               </div>
             </div>
             <div className="w-1/2">
-              <h4 className="text-xl font-semibold text-gray-900">{book.title}</h4>
-              <p className="mt-2 text-gray-600">por {book.author}</p>
+              <h4 className="text-xl font-semibold text-gray-900">{book.titulo}</h4>
+              <p className="mt-2 text-gray-600">por {book.autor}</p>
               
               <div className="mt-4">
                 <span className={`px-2 py-1 text-sm font-semibold rounded-full ${

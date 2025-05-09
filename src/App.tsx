@@ -1,4 +1,3 @@
-import React from 'react';
 import { Toaster } from 'react-hot-toast';
 import { Book, Library, Users, Search, LogOut } from 'lucide-react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
@@ -8,8 +7,8 @@ import UserList from './components/UserList';
 import LoanList from './components/LoanList';
 import NewLoan from './components/NewLoan';
 import LoginForm from './components/LoginForm';
-import UserDashboard from './components/UserDashboard';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import RegisterForm from './components/RegisterForm';
 
 function AdminNav() {
   const location = useLocation();
@@ -104,47 +103,25 @@ function AppContent() {
   const { user, logout } = useAuth();
 
   if (!user) {
-    return <LoginForm />;
-  }
-
-  if (user.role === 'user') {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <>
         <Toaster position="top-right" />
-        <nav className="bg-white shadow-sm">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between h-16">
-              <div className="flex items-center">
-                <Library className="h-8 w-8 text-indigo-600" />
-                <span className="ml-2 text-xl font-semibold text-gray-900">Biblioteca</span>
-              </div>
-              <div className="flex items-center">
-                <span className="mr-4 text-sm text-gray-600">{user.email}</span>
-                <button
-                  onClick={logout}
-                  className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
-                >
-                  <LogOut className="h-4 w-4 mr-1" />
-                  Cerrar sesión
-                </button>
-              </div>
-            </div>
-          </div>
-        </nav>
-
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <Routes>
-            <Route path="/" element={<UserDashboard />} />
-            <Route path="/category/:category" element={<UserDashboard />} />
-          </Routes>
-        </main>
-      </div>
+        <Routes>
+          <Route path="/login" element={<LoginForm />} />
+          <Route path="/register" element={<RegisterForm />} />
+          <Route path="*" element={<Navigate to="/login" replace />} />
+        </Routes>
+      </>
     );
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Toaster position="top-right" />
+      <Toaster position="top-right"
+      toastOptions={{
+        duration: 3000, // Duración en milisegundos (5 segundos)
+      }} 
+      />
       <AdminRoutes />
     </div>
   );
