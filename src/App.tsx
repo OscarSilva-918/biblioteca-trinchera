@@ -119,7 +119,7 @@ function AppContent() {
     <div className="min-h-screen bg-gray-50">
       <Toaster position="top-right"
       toastOptions={{
-        duration: 3000, // Duración en milisegundos (5 segundos)
+        duration: 5000, // Duración en milisegundos (5 segundos)
       }} 
       />
       <AdminRoutes />
