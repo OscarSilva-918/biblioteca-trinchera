@@ -10,16 +10,23 @@ import 'swiper/css/pagination';
 interface BookModalProps {
   book: Book & { isAvailable: boolean };
   onClose: () => void;
+  onEdit: () => void;
+  onDelete: () => void;
 }
 
-export default function BookModal({ book, onClose }: BookModalProps) {
+export default function BookModal({
+  book,
+  onClose,
+  onEdit,
+  onDelete,
+}: BookModalProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  console.log(book.imagen_url)
+
   return (
     <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full overflow-hidden">
         <div className="flex justify-between items-center px-6 py-4 border-b">
-          <h3 className="text-lg font-medium text-gray-900">Detalles del libro </h3>
+          <h3 className="text-lg font-medium text-gray-900">Detalles del libro</h3>
           <button
             onClick={onClose}
             className="text-gray-400 hover:text-gray-500"
@@ -44,7 +51,7 @@ export default function BookModal({ book, onClose }: BookModalProps) {
                     <SwiperSlide key={index}>
                       <img
                         src={url}
-                        alt={`${book.title} - imagen ${index + 1}`}
+                        alt={`${book.titulo} - imagen ${index + 1}`}
                         className="w-full h-full object-cover"
                       />
                     </SwiperSlide>
@@ -65,13 +72,15 @@ export default function BookModal({ book, onClose }: BookModalProps) {
             <div className="w-1/2">
               <h4 className="text-xl font-semibold text-gray-900">{book.titulo}</h4>
               <p className="mt-2 text-gray-600">por {book.autor}</p>
-              
+
               <div className="mt-4">
-                <span className={`px-2 py-1 text-sm font-semibold rounded-full ${
-                  book.isAvailable
-                    ? 'bg-green-100 text-green-800'
-                    : 'bg-red-100 text-red-800'
-                }`}>
+                <span
+                  className={`px-2 py-1 text-sm font-semibold rounded-full ${
+                    book.isAvailable
+                      ? 'bg-green-100 text-green-800'
+                      : 'bg-red-100 text-red-800'
+                  }`}
+                >
                   {book.isAvailable ? 'Disponible' : 'Prestado'}
                 </span>
               </div>
@@ -96,6 +105,20 @@ export default function BookModal({ book, onClose }: BookModalProps) {
               )}
             </div>
           </div>
+        </div>
+        <div className="px-6 py-4 border-t flex justify-end space-x-4">
+          <button
+            onClick={onEdit}
+            className="px-4 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700"
+          >
+            Editar
+          </button>
+          <button
+            onClick={onDelete}
+            className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+          >
+            Eliminar
+          </button>
         </div>
       </div>
     </div>
