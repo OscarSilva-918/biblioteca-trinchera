@@ -7,9 +7,7 @@ import BookModal from "../components/BookModal";
 import EditBookModal from "../components/EditBookModal";
 import { supabase } from "../lib/supabase";
 import CategoryCard from "../components/CategoryCard";
-//@ts-ignore
 import BookCard from "../components/BookCard";
-
 
 
 const categoryBackgrounds: Record<string, string> = {
