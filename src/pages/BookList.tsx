@@ -9,6 +9,8 @@ import { supabase } from "../lib/supabase";
 import CategoryCard from "../components/CategoryCard";
 import BookCard from "../components/BookCard";
 
+//Actualice el nombre
+
 
 const categoryBackgrounds: Record<string, string> = {
   Teología: "bg-gradient-to-br from-blue-500 to-blue-700",
