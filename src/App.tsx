@@ -1,8 +1,8 @@
 import { Toaster } from 'react-hot-toast';
 import { Book, Library, Users, Search, LogOut } from 'lucide-react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
-import BookList from './components/BookList';
-import AddBook from './components/AddBook';
+import BookList from './pages/BookList';
+import AddBook from './pages/AddBook';
 import UserList from './components/UserList';
 import LoanList from './components/LoanList';
 import NewLoan from './components/NewLoan';

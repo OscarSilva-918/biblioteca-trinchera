@@ -1,12 +1,16 @@
 export interface Book {
-  id: string;
-  title: string;
-  author: string;
-  isbn?: string;
-  description?: string;
-  imageUrls: string[];
-  category: string;
-  created_at: string;
+  id_libro: number;
+  titulo: string;
+  autor: string;
+  categoria: string;
+  descripcion: string;
+  imagen_url: string[];
+  isAvailable: boolean;
+}
+
+export interface Category {
+  name: string;
+  background: string;
 }
 
 export interface User {

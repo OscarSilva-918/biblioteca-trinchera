@@ -1,16 +1,18 @@
 import { useState, useEffect } from "react";
 import { Plus } from "lucide-react";
 import { Link, useParams, useNavigate } from "react-router-dom";
-import { bookCategories } from "../lib/db";
 import { Book } from "../types";
 import toast from "react-hot-toast";
-import BookModal from "./BookModal";
-import EditBookModal from "./EditBookModal";
+import BookModal from "../components/BookModal";
+import EditBookModal from "../components/EditBookModal";
 import { supabase } from "../lib/supabase";
-import CategoryCard from "./CategoryCard";
-import BookCard from "./BookCard";
+import CategoryCard from "../components/CategoryCard";
+//@ts-ignore
+import BookCard from "../components/BookCard";
 
-const categoryBackgrounds = {
+
+
+const categoryBackgrounds: Record<string, string> = {
   Teología: "bg-gradient-to-br from-blue-500 to-blue-700",
   "Vida Cristiana": "bg-gradient-to-br from-green-500 to-green-700",
   Apologética: "bg-gradient-to-br from-purple-500 to-purple-700",
@@ -23,7 +25,7 @@ const categoryBackgrounds = {
 };
 
 export default function BookList() {
-  const [books, setBooks] = useState<(Book & { isAvailable: boolean })[]>([]);
+  const [books, setBooks] = useState<Book[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
   const [editingBook, setEditingBook] = useState<Book | null>(null);
@@ -36,7 +38,10 @@ export default function BookList() {
 
   async function fetchBooks() {
     try {
-      let { data: libros, error } = await supabase.from("libros").select("*");
+      const { data: libros, error } = await supabase.from("libros").select("*");
+      if (error) {
+        throw new Error(error.message);
+      }
       setBooks(libros || []);
     } catch (error) {
       toast.error("Error al cargar los libros");
@@ -53,16 +58,13 @@ export default function BookList() {
         .eq("id_libro", bookId);
 
       if (error) {
-        console.error("Error al editar el libro:", error.message);
-        toast.error("Error al editar el libro");
-        return;
+        throw new Error(error.message);
       }
 
       toast.success("Libro editado exitosamente");
       fetchBooks(); // Actualizar la lista de libros
     } catch (error) {
-      console.error("Error inesperado al editar el libro:", error);
-      toast.error("Ocurrió un error inesperado al editar el libro");
+      toast.error("Error al editar el libro");
     }
   }
 
@@ -74,16 +76,13 @@ export default function BookList() {
         .eq("id_libro", bookId);
 
       if (error) {
-        console.error("Error al borrar el libro:", error.message);
-        toast.error("Error al borrar el libro");
-        return;
+        throw new Error(error.message);
       }
 
       toast.success("Libro borrado exitosamente");
       fetchBooks(); // Actualizar la lista de libros
     } catch (error) {
-      console.error("Error inesperado al borrar el libro:", error);
-      toast.error("Ocurrió un error inesperado al borrar el libro");
+      toast.error("Error al borrar el libro");
     }
   }
 
@@ -109,7 +108,7 @@ export default function BookList() {
           </Link>
         </div>
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {bookCategories.map((cat) => {
+          {Object.keys(categoryBackgrounds).map((cat) => {
             const categoryBooks = books.filter((book) => book.categoria === cat);
             const availableBooks = categoryBooks.filter((b) => b.isAvailable);
 
