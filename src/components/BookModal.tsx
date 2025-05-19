@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Book } from '../types';
 import { Swiper, SwiperSlide } from 'swiper/react';
@@ -21,6 +21,15 @@ export default function BookModal({
   onDelete,
 }: BookModalProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [showFullDescription, setShowFullDescription] = useState(false);
+  const [isOverflowing, setIsOverflowing] = useState(false);
+  const descRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (descRef.current) {
+      setIsOverflowing(descRef.current.scrollHeight > 120);
+    }
+  }, [book.descripcion]);
 
   return (
     <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center p-4 z-50">
@@ -72,35 +81,44 @@ export default function BookModal({
             <div className="w-1/2">
               <h4 className="text-xl font-semibold text-gray-900">{book.titulo}</h4>
               <p className="mt-2 text-gray-600">por {book.autor}</p>
-
               <div className="mt-4">
                 <span
                   className={`px-2 py-1 text-sm font-semibold rounded-full ${
-                    book.isAvailable
+                    book.isavailable
                       ? 'bg-green-100 text-green-800'
                       : 'bg-red-100 text-red-800'
                   }`}
                 >
-                  {book.isAvailable ? 'Disponible' : 'Prestado'}
+                  {book.isavailable ? 'Disponible' : 'Prestado'}
                 </span>
               </div>
-
               <div className="mt-4">
                 <span className="px-2 py-1 text-sm font-medium bg-blue-100 text-blue-800 rounded-full">
-                  {book.category}
+                  {book.categoria}
                 </span>
               </div>
-
-              {book.isbn && (
-                <p className="mt-4 text-sm text-gray-600">
-                  <span className="font-medium">ISBN:</span> {book.isbn}
-                </p>
-              )}
-
               {book.descripcion && (
                 <div className="mt-4">
                   <h5 className="text-sm font-medium text-gray-900">Descripción</h5>
-                  <p className="mt-1 text-sm text-gray-600">{book.descripcion}</p>
+                  <div
+                    ref={descRef}
+                    className={`mt-1 text-sm text-gray-600 transition-all duration-300 ${
+                      showFullDescription
+                        ? 'max-h-60 overflow-y-auto'
+                        : 'max-h-28 overflow-hidden'
+                    }`}
+                    style={{ whiteSpace: 'pre-line' }}
+                  >
+                    {book.descripcion}
+                  </div>
+                  {isOverflowing && (
+                    <button
+                      className="mt-2 text-indigo-600 hover:underline text-xs"
+                      onClick={() => setShowFullDescription((v) => !v)}
+                    >
+                      {showFullDescription ? 'Ver menos' : 'Ver más'}
+                    </button>
+                  )}
                 </div>
               )}
             </div>

@@ -4,89 +4,92 @@ import toast from "react-hot-toast";
 import { supabase } from "../lib/supabase";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import { User, AuthUser } from "../types"; // Importa los tipos
 
 export default function LoginForm() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const navigate = useNavigate(); // Para redirigir después del inicio de sesión
-  const { login } = useAuth(); // Contexto de autenticación
+  const [email, setEmail] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+  const navigate = useNavigate();
+  const { login } = useAuth();
 
- const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-  try {
-    // Intentar iniciar sesión con Supabase
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    try {
+      // Intentar iniciar sesión con Supabase
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-    // Si hay un error o el usuario no existe
-    if (error) {
-      if (error.message === "Invalid login credentials") {
-        toast.error("Credenciales incorrectas. Por favor, verifica tu correo y contraseña o registrate");
-      } else if (error.message === "User not found") {
-        toast.error(
-          <span>
-            No se encontró una cuenta con este correo.{" "}
-            <Link to="/register" className="text-indigo-600 underline">
-              Regístrate aquí
-            </Link>
-          </span>
-        );
-      } else {
-        toast.error("Ocurrió un error inesperado. Inténtalo de nuevo más tarde.");
+      if (error) {
+        if (error.message === "Invalid login credentials") {
+          toast.error("Credenciales incorrectas. Por favor, verifica tu correo y contraseña o registrate");
+        } else if (error.message === "User not found") {
+          toast.error(
+            <span>
+              No se encontró una cuenta con este correo.{" "}
+              <Link to="/register" className="text-indigo-600 underline">
+                Regístrate aquí
+              </Link>
+            </span>
+          );
+        } else {
+          toast.error("Ocurrió un error inesperado. Inténtalo de nuevo más tarde.");
+        }
+        return;
       }
-      return; // Detener la ejecución si hay un error
-    }
 
-    if (!data.user) {
-      toast.error("Inicio de sesión fallido. Por favor, inténtalo de nuevo.");
-      return;
-    }
-
-    // Guardar el usuario en el contexto de autenticación
-    login({
-      id: data.user.id,
-      email: data.user.email,
-      role: data.user.user_metadata?.role || "usuario",
-    });
-
-    // Verificar si el perfil existe en la tabla "Perfiles"
-    const { data: perfilExistente, error: perfilError } = await supabase
-      .from("Perfiles")
-      .select("id")
-      .eq("id", data.user.id)
-      .single();
-
-    if (perfilError && perfilError.code !== "PGRST116") {
-      throw new Error("Error al verificar el perfil.");
-    }
-
-    // Si no existe un perfil, crearlo
-    if (!perfilExistente) {
-      const { error: insertError } = await supabase.from("Perfiles").insert([
-        {
-          id: data.user.id,
-          nombre: "Nombre Por Defecto", // Puedes personalizar esto
-          rol: "usuario", // Rol por defecto
-        },
-      ]);
-
-      if (insertError) {
-        console.error("Error al crear el perfil:", insertError.message);
-        throw new Error("Error al crear el perfil.");
+      if (!data.user) {
+        toast.error("Inicio de sesión fallido. Por favor, inténtalo de nuevo.");
+        return;
       }
-    }
 
-    // Mostrar mensaje de éxito y redirigir
-    toast.success("Inicio de sesión exitoso");
-    navigate("/");
-  } catch (error: any) {
-    console.error(error);
-    toast.error(error.message || "Ocurrió un error inesperado.");
-  }
-};
+      // Guardar el usuario en el contexto de autenticación
+      const authUser: AuthUser = {
+        id: data.user.id,
+        email: data.user.email ?? "",
+        role: data.user.user_metadata?.role || "usuario",
+      };
+      login(authUser);
+
+      // Verificar si el perfil existe en la tabla "perfiles"
+      const { data: perfilExistente, error: perfilError } = await supabase
+        .from("perfiles")
+        .select("id")
+        .eq("id", data.user.id)
+        .single();
+
+      if (perfilError && perfilError.code !== "PGRST116") {
+        throw new Error("***Error al verificar el perfil.***");
+      }
+
+      // Si no existe un perfil, crearlo
+      if (!perfilExistente) {
+        const { error: insertError } = await supabase.from<User>("perfiles").insert([
+          {
+            id: data.user.id,
+            nombre: data.user.user_metadata?.nombre || "Nombre Por Defecto",
+            email: data.user.email,
+            role: data.user.user_metadata?.role || "usuario",
+            created_at: new Date().toISOString(),
+          },
+        ]);
+
+        if (insertError) {
+          console.error("Error al crear el perfil:", insertError.message);
+          throw new Error("Error al crear el perfil.");
+        }
+      }
+
+      toast.success("Inicio de sesión exitoso");
+      navigate("/");
+    } catch (error: any) {
+      console.error(error);
+      toast.error(error.message || "Ocurrió un error inesperado.");
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">

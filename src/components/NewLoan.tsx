@@ -1,12 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { Plus } from 'lucide-react';
-import { booksApi, usersApi, loansApi } from '../lib/db';
-import { Book, User } from '../types';
+import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
 
+interface Book {
+  id_libro: number;
+  titulo: string;
+  isAvailable: boolean;
+}
+interface Perfil {
+  id: string;
+  nombre: string;
+}
+
 export default function NewLoan() {
-  const [books, setBooks] = useState<(Book & { isAvailable: boolean })[]>([]);
-  const [users, setUsers] = useState<User[]>([]);
+  const [books, setBooks] = useState<Book[]>([]);
+  const [users, setUsers] = useState<Perfil[]>([]);
   const [selectedBook, setSelectedBook] = useState('');
   const [selectedUser, setSelectedUser] = useState('');
   const [loading, setLoading] = useState(true);
@@ -16,34 +25,54 @@ export default function NewLoan() {
   }, []);
 
   async function fetchBooks() {
-    const data = await booksApi.list();
-    setBooks(data);
+    const { data, error } = await supabase
+      .from('libros')
+      .select('id_libro, titulo, isavailable');
+    if (error) toast.error('Error al cargar libros');
+    else setBooks(
+      (data || []).map(book => ({
+        ...book,
+        isAvailable: book.isavailable,
+      }))
+    );
   }
 
   async function fetchUsers() {
-    const data = await usersApi.list();
-    setUsers(data);
+    const { data, error } = await supabase
+      .from('perfiles')
+      .select('id, nombre, email');
+    if (error) toast.error('Error al cargar usuarios');
+    else setUsers(data || []);
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!selectedBook || !selectedUser) {
+      toast.error('Selecciona libro y usuario');
+      return;
+    }
     try {
-      await loansApi.create({
-        book_id: selectedBook,
-        user_id: selectedUser,
-        loan_date: new Date().toISOString()
-      });
-      
+      // Insertar préstamo
+      const { error: prestamoError } = await supabase.from('prestamos').insert([
+        {
+          id_libro: Number(selectedBook),
+          id_usuario: selectedUser,
+        },
+      ]);
+      if (prestamoError) throw prestamoError;
+
+      // Marcar libro como no disponible
+      await supabase
+        .from('libros')
+        .update({ isavailable: false })
+        .eq('id_libro', selectedBook);
+
       toast.success('Préstamo registrado exitosamente');
       setSelectedBook('');
       setSelectedUser('');
-      fetchBooks(); // Refresh books to update availability
-    } catch (error) {
-      if (error instanceof Error) {
-        toast.error(error.message);
-      } else {
-        toast.error('Error al registrar el préstamo');
-      }
+      fetchBooks(); // Actualiza libros disponibles
+    } catch (error: any) {
+      toast.error(error.message || 'Error al registrar el préstamo');
     }
   }
 
@@ -52,7 +81,6 @@ export default function NewLoan() {
   }
 
   const availableBooks = books.filter(book => book.isAvailable);
-
   return (
     <div className="bg-white shadow sm:rounded-lg">
       <div className="px-4 py-5 sm:p-6">
@@ -72,7 +100,7 @@ export default function NewLoan() {
               >
                 <option value="">Seleccionar libro</option>
                 {availableBooks.map((book) => (
-                  <option key={book.id} value={book.id}>{book.title}</option>
+                  <option key={book.id_libro} value={book.id_libro}>{book.titulo}</option>
                 ))}
               </select>
               {books.length > availableBooks.length && (
@@ -94,7 +122,7 @@ export default function NewLoan() {
               >
                 <option value="">Seleccionar usuario</option>
                 {users.map((user) => (
-                  <option key={user.id} value={user.id}>{user.name}</option>
+                  <option key={user.id} value={user.id}>{user.nombre}</option>
                 ))}
               </select>
             </div>

@@ -100,7 +100,7 @@ function AdminRoutes() {
 }
 
 function AppContent() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
 
   if (!user) {
     return (

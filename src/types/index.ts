@@ -6,6 +6,7 @@ export interface Book {
   descripcion: string;
   imagen_url: string[];
   isAvailable: boolean;
+  isavailable: boolean; // <-- minúscula para coincidir con la base de datos
 }
 
 export interface Category {
@@ -15,9 +16,9 @@ export interface Category {
 
 export interface User {
   id: string;
-  name: string;
+  nombre: string; // <-- usa 'nombre' para coincidir con 'Perfil'
   email: string;
-  role: 'admin' | 'user';
+  role: 'admin' | 'usuario'; // <-- usa 'usuario' para coincidir con la base
   created_at: string;
 }
 
@@ -36,5 +37,22 @@ export interface Loan {
 export interface AuthUser {
   id: string;
   email: string;
-  role: 'admin' | 'user';
+  role: 'admin' | 'usuario';
+}
+
+// Para joins automáticos en Supabase
+export interface Perfil {
+  nombre: string;
+}
+
+export interface Libro {
+  titulo: string;
+}
+
+export interface LoanRow {
+  id_prestamo: number;
+  fecha_prestamo: string;
+  fecha_devolucion: string | null;
+  perfiles: Perfil | null;
+  libros: Libro | null;
 }

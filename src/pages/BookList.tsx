@@ -131,16 +131,28 @@ export default function BookList() {
   const filteredBooks = books.filter((book) => book.categoria === category);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 mt-8">
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {filteredBooks.map((book) => (
-          <BookCard
-            key={book.id_libro}
-            book={book}
-            background={categoryBackgrounds[book.categoria]}
-            onViewDetails={() => setSelectedBook(book)}
-          />
-        ))}
+        {filteredBooks.length === 0 ? (
+          <div className="col-span-full flex flex-col items-center justify-center py-10">
+            <p className="text-gray-500 mb-4">No hay libros en esta categoría.</p>
+            <button
+              onClick={() => navigate(-1)}
+              className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"
+            >
+              Volver atrás
+            </button>
+          </div>
+        ) : (
+          filteredBooks.map((book) => (
+            <BookCard
+              key={book.id_libro}
+              book={book}
+              background={categoryBackgrounds[book.categoria]}
+              onViewDetails={() => setSelectedBook(book)}
+            />
+          ))
+        )}
       </div>
 
       {selectedBook && (
