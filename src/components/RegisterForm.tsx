@@ -7,60 +7,70 @@ import { useNavigate } from "react-router-dom";
 export default function RegisterForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState(""); // Nuevo estado
   const [nombre, setNombre] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  setLoading(true);
+  const passwordIsSecure = (pwd: string) =>
+    pwd.length >= 6 && /[A-Za-z]/.test(pwd) && /\d/.test(pwd);
 
-  try {
-    // 1. Registrar usuario en Supabase Auth
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-    });
-    console.log(data)
-    if (error) {
-      toast.error("Error al registrarse");
-      console.log(error);
-      setLoading(false);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (password !== confirmPassword) {
+      toast.error("Las contraseñas no coinciden");
+      return;
+    }
+    if (!passwordIsSecure(password)) {
+      toast.error(
+        "La contraseña debe tener al menos 6 caracteres, una letra y un número"
+      );
       return;
     }
 
-    const user = data.user;
+    setLoading(true);
 
-    if (!user) {
-      toast.success("Registro exitoso. Revisa tu correo.");
+    try {
+      // 1. Registrar usuario en Supabase Auth
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+      });
+      if (error) {
+        toast.error("Error al registrarse");
+        setLoading(false);
+        return;
+      }
+
+      const user = data.user;
+
+      if (!user) {
+        toast.success("Registro exitoso. Revisa tu correo.");
+        setLoading(false);
+        navigate("/login");
+        return;
+      }
+
+      // 2. Insertar en la tabla perfiles
+      const { error: insertError } = await supabase.from("perfiles").insert({
+        id: user.id,
+        nombre: nombre,
+        email: email,
+      });
+      if (insertError) {
+        toast.error("Error al guardar el perfil");
+      } else {
+        toast.success("Registro exitoso");
+      }
+
       setLoading(false);
       navigate("/login");
-      return;
+    } catch (error) {
+      toast.error("Ocurrió un error inesperado");
+      setLoading(false);
     }
-
-    // 2. Insertar en la tabla perfiles
-    const { error: insertError } = await supabase.from("perfiles").insert({
-      id: user.id,
-      nombre: nombre,
-      email: email,
-    });
-    console.log(user.id, nombre, email)
-    if (insertError) {
-      console.error(insertError);
-      toast.error("Error al guardar el perfil");
-    } else {
-      toast.success("Registro exitoso");
-    }
-
-    setLoading(false);
-    navigate("/login");
-
-  } catch (error) {
-    console.error(error);
-    toast.error("Ocurrió un error inesperado");
-    setLoading(false);
-  }
-};
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
@@ -121,6 +131,23 @@ const handleSubmit = async (e: React.FormEvent) => {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                className="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm"
+              />
+            </div>
+            <div>
+              <label
+                htmlFor="confirmPassword"
+                className="block text-sm font-medium text-gray-700"
+              >
+                Confirmar contraseña
+              </label>
+              <input
+                id="confirmPassword"
+                name="confirmPassword"
+                type="password"
+                required
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
                 className="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm"
               />
             </div>

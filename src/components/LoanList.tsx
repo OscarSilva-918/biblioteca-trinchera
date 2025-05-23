@@ -1,46 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { format } from 'date-fns';
 import { CheckCircle, Search } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
-import { LoanRow } from '../types'; // Importa el tipo desde tu archivo de tipos
+import { LoanRow } from '../types';
 
-export default function LoanList() {
-  const [loans, setLoans] = useState<LoanRow[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+interface LoanListProps {
+  loans: LoanRow[];
+  loading: boolean;
+  fetchLoans: () => void;
+  fetchBooks: () => void; // <--- agrega esto
+}
+
+export default function LoanList({ loans, loading, fetchLoans, fetchBooks }: LoanListProps) {
   const [searchTerm, setSearchTerm] = useState<string>('');
-
-  useEffect(() => {
-    fetchLoans();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  async function fetchLoans() {
-    setLoading(true);
-    const { data, error } = await supabase
-      .from('prestamos')
-      .select(`
-        id_prestamo,
-        fecha_prestamo,
-        fecha_devolucion,
-        perfiles (nombre),
-        libros (titulo)
-      `)
-      .order('fecha_prestamo', { ascending: false });
-
-    if (error) {
-      toast.error('Error al cargar los préstamos');
-      console.error(error);
-    } else {
-      const normalized = (data || []).map((loan) => ({
-        ...loan,
-        perfiles: Array.isArray(loan.perfiles) ? loan.perfiles[0] || null : loan.perfiles,
-        libros: Array.isArray(loan.libros) ? loan.libros[0] || null : loan.libros,
-      }));
-      setLoans(normalized);
-    }
-    setLoading(false);
-  }
 
   async function handleReturn(loanId: number) {
     try {
@@ -51,8 +24,27 @@ export default function LoanList() {
 
       if (error) throw error;
 
+      const { data: loanData, error: fetchError } = await supabase
+        .from('prestamos')
+        .select('id_libro')
+        .eq('id_prestamo', loanId)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      if (loanData?.id_libro) {
+        const { error: bookError } = await supabase
+          .from('libros')
+          .update({ isavailable: true })
+          .eq('id_libro', loanData.id_libro);
+
+        if (bookError) throw bookError;
+      }
+
       toast.success('Libro marcado como devuelto');
+      await new Promise((res) => setTimeout(res, 500));
       fetchLoans();
+      fetchBooks(); // <--- agrega esto
     } catch (error) {
       toast.error('Error al actualizar el préstamo');
     }

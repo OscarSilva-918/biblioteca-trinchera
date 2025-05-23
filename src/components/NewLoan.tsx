@@ -13,29 +13,20 @@ interface Perfil {
   nombre: string;
 }
 
-export default function NewLoan() {
-  const [books, setBooks] = useState<Book[]>([]);
+export default function NewLoan(props: {
+  onLoanAdded?: () => void;
+  books: Book[];
+  booksLoading: boolean;
+  fetchBooks: () => void;
+}) {
   const [users, setUsers] = useState<Perfil[]>([]);
   const [selectedBook, setSelectedBook] = useState('');
   const [selectedUser, setSelectedUser] = useState('');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    Promise.all([fetchBooks(), fetchUsers()]).then(() => setLoading(false));
+    fetchUsers();
   }, []);
-
-  async function fetchBooks() {
-    const { data, error } = await supabase
-      .from('libros')
-      .select('id_libro, titulo, isavailable');
-    if (error) toast.error('Error al cargar libros');
-    else setBooks(
-      (data || []).map(book => ({
-        ...book,
-        isAvailable: book.isavailable,
-      }))
-    );
-  }
 
   async function fetchUsers() {
     const { data, error } = await supabase
@@ -67,20 +58,23 @@ export default function NewLoan() {
         .update({ isavailable: false })
         .eq('id_libro', selectedBook);
 
+      // Agrega un pequeño retraso antes de recargar los libros
+      await new Promise((res) => setTimeout(res, 500));
       toast.success('Préstamo registrado exitosamente');
       setSelectedBook('');
       setSelectedUser('');
-      fetchBooks(); // Actualiza libros disponibles
+      if (props.onLoanAdded) props.onLoanAdded();
+      // props.fetchBooks(); // Ya lo hace onLoanAdded
     } catch (error: any) {
       toast.error(error.message || 'Error al registrar el préstamo');
     }
   }
 
-  if (loading) {
+  if (props.booksLoading) {
     return <div>Cargando...</div>;
   }
 
-  const availableBooks = books.filter(book => book.isAvailable);
+  const availableBooks = props.books.filter(book => book.isAvailable);
   return (
     <div className="bg-white shadow sm:rounded-lg">
       <div className="px-4 py-5 sm:p-6">
@@ -103,9 +97,9 @@ export default function NewLoan() {
                   <option key={book.id_libro} value={book.id_libro}>{book.titulo}</option>
                 ))}
               </select>
-              {books.length > availableBooks.length && (
+              {props.books.length > availableBooks.length && (
                 <p className="mt-1 text-sm text-gray-500">
-                  {books.length - availableBooks.length} libro(s) no disponible(s)
+                  {props.books.length - availableBooks.length} libro(s) no disponible(s)
                 </p>
               )}
             </div>

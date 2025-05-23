@@ -1,16 +1,15 @@
 import { Toaster } from 'react-hot-toast';
-import { Book, Library, Users, Search, LogOut } from 'lucide-react';
+import { Book, Library, Users, Search, LogOut, LucideArrowDownSquare } from 'lucide-react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
 import BookList from './pages/BookList';
 import AddBook from './pages/AddBook';
 import UserList from './components/UserList';
-import LoanList from './components/LoanList';
-import NewLoan from './components/NewLoan';
 import LoginForm from './components/LoginForm';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import RegisterForm from './components/RegisterForm';
+import LoansSection from './pages/LoansSection';
 
-function AdminNav() {
+export function  AdminNav() {
   const location = useLocation();
   const { logout } = useAuth();
   
@@ -87,12 +86,7 @@ function AdminRoutes() {
           <Route path="/books/add" element={<AddBook />} />
           <Route path="/books/category/:category" element={<BookList />} />
           <Route path="/users" element={<UserList />} />
-          <Route path="/loans" element={
-            <div className="space-y-8">
-              <NewLoan />
-              <LoanList />
-            </div>
-          } />
+          <Route path="/loans" element={<LoansSection/>} />
         </Routes>
       </main>
     </>
