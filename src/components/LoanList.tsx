@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { format } from 'date-fns';
 import { CheckCircle, Search } from 'lucide-react';
 import { supabase } from '../lib/supabase';
@@ -9,7 +9,7 @@ interface LoanListProps {
   loans: LoanRow[];
   loading: boolean;
   fetchLoans: () => void;
-  fetchBooks: () => void; // <--- agrega esto
+  fetchBooks: () => void; 
 }
 
 export default function LoanList({ loans, loading, fetchLoans, fetchBooks }: LoanListProps) {
@@ -44,13 +44,14 @@ export default function LoanList({ loans, loading, fetchLoans, fetchBooks }: Loa
       toast.success('Libro marcado como devuelto');
       await new Promise((res) => setTimeout(res, 500));
       fetchLoans();
-      fetchBooks(); // <--- agrega esto
+      fetchBooks();
     } catch (error) {
       toast.error('Error al actualizar el préstamo');
     }
   }
 
   // Filtro por nombre de libro o usuario
+  
   const filteredLoans = loans.filter(
     (loan) =>
       (loan.libros?.titulo || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
