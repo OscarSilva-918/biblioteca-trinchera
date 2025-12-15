@@ -85,7 +85,7 @@ function LoansSection() {
         loans={loans}
         loading={loading}
         fetchLoans={fetchLoans}
-        fetchBooks={fetchBooks} // <-- pásalo aquí también
+        fetchBooks={fetchBooks} 
       />
     </div>
   );
